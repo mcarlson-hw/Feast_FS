@@ -1,34 +1,35 @@
 #pragma once
 #include <mpi.h>
+#include <complex>
 class CubeFD
 {
 private:
 	// Constants
-	const double PI = 3.1415927;
-	const double C = -0.008443431966;
+	const complex<double> PI = 3.1415927;
+	const complex<double> C = -0.008443431966;
 	int* periods;
 
 	// Data
-	double* local_in;
-	double* local_out;
-	double* top_neighbor;
-	double* bottom_neighbor;
-	double* left_neighbor;
-	double* right_neighbor;
-	double* front_neighbor;
-	double* back_neighbor;
-	double* top_data;
-	double* bottom_data;
-	double* left_data;
-	double* right_data;
-	double* front_data;
-	double* back_data;
+	complex<double>* local_in;
+	complex<double>* local_out;
+	complex<double>* top_neighbor;
+	complex<double>* bottom_neighbor;
+	complex<double>* left_neighbor;
+	complex<double>* right_neighbor;
+	complex<double>* front_neighbor;
+	complex<double>* back_neighbor;
+	complex<double>* top_data;
+	complex<double>* bottom_data;
+	complex<double>* left_data;
+	complex<double>* right_data;
+	complex<double>* front_data;
+	complex<double>* back_data;
 
 	// Parameters
 	int n_rows, n_cols, n_layers, n_elems;
 
-	double hx, hy, hz, h;
-	double a, ax, ay, az, ah;
+	complex<double> hx, hy, hz, h;
+	complex<double> a, ax, ay, az, ah;
 	int* divs;
 
 	// MPI Stuff
@@ -47,10 +48,10 @@ public:
 	CubeFD(int, int, int, int, int, MPI_Comm);
 
 	// Internal Functions
-	void ApplyA(double*, double*, MPI_Comm comm);
-	void ApplyB(double*, double*, double, MPI_Comm comm);
-	void ApplyC(double*, double*, double, MPI_Comm comm);
-	void ApplyM(double*, double*, MPI_Comm comm);
+	void ApplyA(complex<double>*, complex<double>*, MPI_Comm comm);
+	void ApplyB(complex<double>*, complex<double>*, complex<double>, MPI_Comm comm);
+	void ApplyC(complex<double>*, complex<double>*, complex<double>, MPI_Comm comm);
+	void ApplyM(complex<double>*, complex<double>*, MPI_Comm comm);
 	void PrepareOutgoingBuffers();
 
 	// Static Functions
