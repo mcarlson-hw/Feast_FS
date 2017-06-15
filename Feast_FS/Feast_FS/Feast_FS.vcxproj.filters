@@ -27,6 +27,9 @@
     <ClCompile Include="mpi_dot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="2-my_gmres.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CubeFD.h">
