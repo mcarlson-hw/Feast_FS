@@ -18,7 +18,6 @@ int main(int argc, char **argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 	// === Main Execution Section ===
-	srand(time(NULL));
 	const int d = 50;
 	const MKL_INT N = d*d*d;
 	double* X;
@@ -45,14 +44,12 @@ int main(int argc, char **argv)
 		{
 			X[i] = (double)(i + 1);
 			B[i] = (double)(i + 1);
-			//X[i] = rand() / RAND_MAX;
 		}
 
 		// Initialize GMRES (do once)
 		dfgmres_init(&N, X, B, &RCI_request, ipar, dpar, tmp);
 		cout << "Init: RCI_request = " << RCI_request << endl;
-		ipar[4] = 300;
-		ipar[10] = 1;
+		ipar[4] = 600;
 
 		// Check parameters for consistency (not required unless parameters manually changed)
 		dfgmres_check(&N, X, B, &RCI_request, ipar, dpar, tmp);
@@ -70,7 +67,7 @@ int main(int argc, char **argv)
 				tmp1 = &tmp[ipar[21] - 1];
 				tmp2 = &tmp[ipar[22] - 1];
 			}
-			cl.ApplyB(tmp1, tmp2, 0.1, MPI_COMM_WORLD);
+			cl.ApplyA(tmp1, tmp2, MPI_COMM_WORLD);
 		}
 		if (RCI_request == 2)
 		{
@@ -78,13 +75,7 @@ int main(int argc, char **argv)
 		}
 		if (RCI_request == 3)
 		{
-			// Apply preconditioner
-			if (rank == 0)
-			{
-				tmp1 = &tmp[ipar[21] - 1];
-				tmp2 = &tmp[ipar[22] - 1];
-			}
-			cl.ApplyC(tmp1, tmp2, 0.1, MPI_COMM_WORLD);
+			// Do nothing for now
 		}
 		if (RCI_request == 4)
 		{
@@ -146,8 +137,6 @@ int main(int argc, char **argv)
 				cout << "]\n";
 			}
 		}
-		dfgmres_init(&N, X, B, &RCI_request, ipar, dpar, tmp);
-		cout << "Init: RCI_request = " << RCI_request << endl;
 	}
 	// ==============================
 

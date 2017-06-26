@@ -152,7 +152,6 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="2-my_gmres.cpp" />
     <ClCompile Include="CubeFD.cpp" />
     <ClCompile Include="1-dfgmres.cpp" />
     <ClCompile Include="mpi_dot.cpp" />
