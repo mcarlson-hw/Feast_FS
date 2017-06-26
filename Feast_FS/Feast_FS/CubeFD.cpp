@@ -1,7 +1,9 @@
 #include <cmath>
 #include <iostream>
+#include <complex>
 #include <time.h>
 #include "CubeFD.h"
+#include "mpi_dot.h"
 using namespace std;
 CubeFD::CubeFD(int total_rows, int total_columns, int total_layers, int rank, int P, MPI_Comm comm)
 {
@@ -16,14 +18,14 @@ CubeFD::CubeFD(int total_rows, int total_columns, int total_layers, int rank, in
 	n_layers = total_layers / divs[2];
 	n_elems = n_rows*n_cols*n_layers;
 
-	hx = 1.0 / ((complex<double>)(total_rows - 1));
-	hy = 1.0 / ((complex<double>)(total_columns - 1));
-	hz = 1.0 / ((complex<double>)(total_layers - 1));
+	hx = (complex<double>) 1.0 / (complex<double>)(total_rows - 1);
+	hy = (complex<double>) 1.0 / (complex<double>)(total_columns - 1);
+	hz = (complex<double>) 1.0 / (complex<double>)(total_layers - 1);
 
-	ax = 1.0 / (hx*hx);
-	ay = 1.0 / (hy*hy);
-	az = 1.0 / (hz*hz);
-	a = 2.0 * (ax + ay + az);
+	ax = (complex<double>) 1.0 / (hx*hx);
+	ay = (complex<double>) 1.0 / (hy*hy);
+	az = (complex<double>) 1.0 / (hz*hz);
+	a = (complex<double>) 2.0 * (ax + ay + az);
 
 	local_in = new complex<double>[n_elems];
 	local_out = new complex<double>[n_elems];
@@ -64,7 +66,7 @@ void CubeFD::ApplyA(complex<double>* in, complex<double>* out, MPI_Comm comm)
 		m_to_ijk(M);
 		if (IJK[0] == 0 || IJK[0] == n_rows - 1 || IJK[1] == 0 || IJK[0] == n_cols - 1 || IJK[2] == 0 || IJK[2] == n_layers - 1)
 			continue;
-		sum = 0.0f;
+		sum = (complex<double>) 0.0;
 		m = ijk_to_m(IJK[0] + 1, IJK[1], IJK[2]);
 		if (m != -1) { sum += ax*local_in[m]; }
 		else { sum += ax*right_neighbor[jk_to_m(IJK[1], IJK[2])]; }
@@ -94,7 +96,7 @@ void CubeFD::ApplyA(complex<double>* in, complex<double>* out, MPI_Comm comm)
 		m_to_ijk(M);
 		if (IJK[0] != 0 && IJK[0] != n_rows - 1 && IJK[1] != 0 && IJK[0] != n_cols - 1 && IJK[2] != 0 && IJK[2] != n_layers - 1)
 			continue;
-		sum = 0.0f;
+		sum = (complex<double>) 0.0;
 		m = ijk_to_m(IJK[0] + 1, IJK[1], IJK[2]);
 		if (m != -1) { sum += ax*local_in[m]; }
 		else { sum += ax*right_neighbor[jk_to_m(IJK[1], IJK[2])]; }
@@ -135,7 +137,7 @@ void CubeFD::ApplyB(complex<double>* in, complex<double>* out, complex<double> s
 		m_to_ijk(M);
 		if (IJK[0] == 0 || IJK[0] == n_rows - 1 || IJK[1] == 0 || IJK[0] == n_cols - 1 || IJK[2] == 0 || IJK[2] == n_layers - 1)
 			continue;
-		sum = 0.0f;
+		sum = (complex<double>) 0.0;
 		m = ijk_to_m(IJK[0] + 1, IJK[1], IJK[2]);
 		if (m != -1) { sum += ax*local_in[m]; }
 		else { sum += ax*right_neighbor[jk_to_m(IJK[1], IJK[2])]; }
@@ -165,7 +167,7 @@ void CubeFD::ApplyB(complex<double>* in, complex<double>* out, complex<double> s
 		m_to_ijk(M);
 		if (IJK[0] != 0 && IJK[0] != n_rows - 1 && IJK[1] != 0 && IJK[0] != n_cols - 1 && IJK[2] != 0 && IJK[2] != n_layers - 1)
 			continue;
-		sum = 0.0f;
+		sum = (complex<double>) 0.0;
 		m = ijk_to_m(IJK[0] + 1, IJK[1], IJK[2]);
 		if (m != -1) { sum += ax*local_in[m]; }
 		else { sum += ax*right_neighbor[jk_to_m(IJK[1], IJK[2])]; }
@@ -196,7 +198,7 @@ void CubeFD::ApplyC(complex<double>* in, complex<double>* out, complex<double> s
 {
 	MPI_Scatter(in, n_elems, MPI_DOUBLE_COMPLEX, local_in, n_elems, MPI_DOUBLE_COMPLEX, 0, comm);
 	for (int i = 0; i < n_elems; i++)
-		local_out[i] = (1.0f / (a - sigma)) * local_in[i];
+		local_out[i] = ((complex<double>) 1.0 / (a - sigma)) * local_in[i];
 	MPI_Gather(local_out, n_elems, MPI_DOUBLE_COMPLEX, out, n_elems, MPI_DOUBLE_COMPLEX, 0, comm);
 }
 void CubeFD::ApplyM(complex<double>* in, complex<double>* out, MPI_Comm comm)
@@ -205,6 +207,86 @@ void CubeFD::ApplyM(complex<double>* in, complex<double>* out, MPI_Comm comm)
 	{
 		out[i] = in[i];
 	}
+}
+void CubeFD::ApplyZc(complex<double>* in, complex<double>* out, complex<double> Ze, MPI_Comm comm)
+{
+	MPI_Scatter(in, n_elems, MPI_DOUBLE_COMPLEX, local_in, n_elems, MPI_DOUBLE_COMPLEX, 0, comm);
+	for (int i = 0; i < n_elems; i++)
+		local_out[i] = ((complex<double>) 1.0 / (Ze - a)) * local_in[i];
+	MPI_Gather(local_out, n_elems, MPI_DOUBLE_COMPLEX, out, n_elems, MPI_DOUBLE_COMPLEX, 0, comm);
+}
+void CubeFD::ApplyZ(complex<double>* in, complex<double>* out, complex<double> Ze, MPI_Comm comm)
+{
+	// Z = Ze * B - A
+	// N = n_elems * divs[0] * divs[1] * divs[2]
+	MPI_Scatter(in, n_elems, MPI_DOUBLE_COMPLEX, local_in, n_elems, MPI_DOUBLE_COMPLEX, 0, comm);
+	PrepareOutgoingBuffers();
+	communicate();
+
+	int m;
+	complex<double> sum;
+
+	for (int M = 0; M < n_elems; M++)
+	{
+		m_to_ijk(M);
+		if (IJK[0] == 0 || IJK[0] == n_rows - 1 || IJK[1] == 0 || IJK[0] == n_cols - 1 || IJK[2] == 0 || IJK[2] == n_layers - 1)
+			continue;
+		sum = (complex<double>) 0.0;
+		m = ijk_to_m(IJK[0] + 1, IJK[1], IJK[2]);
+		if (m != -1) { sum += ax*local_in[m]; }
+		else { sum += ax*right_neighbor[jk_to_m(IJK[1], IJK[2])]; }
+		m = ijk_to_m(IJK[0] - 1, IJK[1], IJK[2]);
+		if (m != -1) { sum += ax*local_in[m]; }
+		else { sum += ax*left_neighbor[jk_to_m(IJK[1], IJK[2])]; }
+		m = ijk_to_m(IJK[0], IJK[1] + 1, IJK[2]);
+		if (m != -1) { sum += ay*local_in[m]; }
+		else { sum += ay*front_neighbor[ik_to_m(IJK[0], IJK[2])]; }
+		m = ijk_to_m(IJK[0], IJK[1] - 1, IJK[2]);
+		if (m != -1) { sum += ay*local_in[m]; }
+		else { sum += ay*back_neighbor[ik_to_m(IJK[0], IJK[2])]; }
+		m = ijk_to_m(IJK[0], IJK[1], IJK[2] + 1);
+		if (m != -1) { sum += az*local_in[m]; }
+		else { sum += az*top_neighbor[ij_to_m(IJK[0], IJK[1])]; }
+		m = ijk_to_m(IJK[0], IJK[1], IJK[2] - 1);
+		if (m != -1) { sum += az*local_in[m]; }
+		else { sum += az*bottom_neighbor[ij_to_m(IJK[0], IJK[1])]; }
+		m = ijk_to_m(IJK[0], IJK[1], IJK[2]);
+		local_out[M] = (Ze - a)*local_in[m] + sum;
+	}
+
+	wait_for_recvs();
+
+	for (int M = 0; M < n_elems; M++)
+	{
+		m_to_ijk(M);
+		if (IJK[0] != 0 && IJK[0] != n_rows - 1 && IJK[1] != 0 && IJK[0] != n_cols - 1 && IJK[2] != 0 && IJK[2] != n_layers - 1)
+			continue;
+		sum = (complex<double>) 0.0;
+		m = ijk_to_m(IJK[0] + 1, IJK[1], IJK[2]);
+		if (m != -1) { sum += ax*local_in[m]; }
+		else { sum += ax*right_neighbor[jk_to_m(IJK[1], IJK[2])]; }
+		m = ijk_to_m(IJK[0] - 1, IJK[1], IJK[2]);
+		if (m != -1) { sum += ax*local_in[m]; }
+		else { sum += ax*left_neighbor[jk_to_m(IJK[1], IJK[2])]; }
+		m = ijk_to_m(IJK[0], IJK[1] + 1, IJK[2]);
+		if (m != -1) { sum += ay*local_in[m]; }
+		else { sum += ay*front_neighbor[ik_to_m(IJK[0], IJK[2])]; }
+		m = ijk_to_m(IJK[0], IJK[1] - 1, IJK[2]);
+		if (m != -1) { sum += ay*local_in[m]; }
+		else { sum += ay*back_neighbor[ik_to_m(IJK[0], IJK[2])]; }
+		m = ijk_to_m(IJK[0], IJK[1], IJK[2] + 1);
+		if (m != -1) { sum += az*local_in[m]; }
+		else { sum += az*top_neighbor[ij_to_m(IJK[0], IJK[1])]; }
+		m = ijk_to_m(IJK[0], IJK[1], IJK[2] - 1);
+		if (m != -1) { sum += az*local_in[m]; }
+		else { sum += az*bottom_neighbor[ij_to_m(IJK[0], IJK[1])]; }
+		m = ijk_to_m(IJK[0], IJK[1], IJK[2]);
+		local_out[M] = (Ze - a)*local_in[m] + sum;
+	}
+
+	wait_for_sends();
+
+	MPI_Gather(local_out, n_elems, MPI_DOUBLE_COMPLEX, out, n_elems, MPI_DOUBLE_COMPLEX, 0, comm);
 }
 void CubeFD::PrepareOutgoingBuffers()
 {

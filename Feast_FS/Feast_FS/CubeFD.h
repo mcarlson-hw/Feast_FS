@@ -1,12 +1,13 @@
 #pragma once
 #include <mpi.h>
 #include <complex>
+using namespace std;
 class CubeFD
 {
 private:
 	// Constants
-	const complex<double> PI = 3.1415927;
-	const complex<double> C = -0.008443431966;
+	const complex<double> PI = (complex<double>) 3.1415927;
+	const complex<double> C = (complex<double>) - 0.008443431966;
 	int* periods;
 
 	// Data
@@ -52,6 +53,8 @@ public:
 	void ApplyB(complex<double>*, complex<double>*, complex<double>, MPI_Comm comm);
 	void ApplyC(complex<double>*, complex<double>*, complex<double>, MPI_Comm comm);
 	void ApplyM(complex<double>*, complex<double>*, MPI_Comm comm);
+	void ApplyZc(complex<double>* in, complex<double>* out, complex<double> Ze, MPI_Comm comm);
+	void ApplyZ(complex<double>* in, complex<double>* out, complex<double> Ze, MPI_Comm comm);
 	void PrepareOutgoingBuffers();
 
 	// Static Functions
