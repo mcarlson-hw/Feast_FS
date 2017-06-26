@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 
 		for (int i = 0; i < N; i++)
 		{
-			b[i] = (complex<double>) (i + 1);
+			b[i] = (complex<double>) (i+1);
 			x0[i] = b[i];
 		}
 	}

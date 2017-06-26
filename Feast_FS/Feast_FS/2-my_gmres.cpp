@@ -52,7 +52,10 @@ int main(int argc, char **argv)
 	complex<double> zero = (complex<double>) 0.0;
 	complex<double>* v_ptr;
 	complex<double>* z_ptr;
+	complex<double> Ze;
 
+	Ze.real(6.49242);
+	Ze.imag(-4.698);
 	// Allocate Memory
 	if (rank == 0)
 	{
@@ -97,7 +100,7 @@ int main(int argc, char **argv)
 	for (int l = 0; l < L; l++)
 	{
 		// r0 = b - A*x0;
-		cl.ApplyB(x0, r0, (complex<double>)0.1, MPI_COMM_WORLD);
+		cl.ApplyZ(x0, r0, Ze, MPI_COMM_WORLD);
 		mpi_plus(b, r0, r0, N, rank, size, MPI_COMM_WORLD, false);
 
 		// beta = norm(r0,2);
@@ -123,8 +126,8 @@ int main(int argc, char **argv)
 			else v_ptr = NULL;
 
 			// w = A * V(j,:)';
-			cl.ApplyC(v_ptr, z_ptr, (complex<double>) 0.1, MPI_COMM_WORLD);
-			cl.ApplyB(z_ptr, w, (complex<double>) 0.1, MPI_COMM_WORLD);
+			cl.ApplyZc(v_ptr, z_ptr, Ze, MPI_COMM_WORLD);
+			cl.ApplyZ(z_ptr, w, Ze, MPI_COMM_WORLD);
 
 			// for i = 1:j
 			for (int i = 0; i <= j; i++)
@@ -200,7 +203,7 @@ int main(int argc, char **argv)
 		//		||beta * e1 - H_l * y_hat|| < epsilon
 		// ============================
 
-		if (rank == 0) cblas_zgemv(CblasRowMajor, CblasNoTrans, m + 1, m, &one, H, m, y, 1, &zero, temp1, 1);
+		if (rank == 0) cblas_zgemv(CblasRowMajor, CblasNoTrans, m + 1, m, &one, *H, m, *y, 1, &zero, temp1, 1);
 
 		mpi_plus(e1, temp1, temp1, m + 1, rank, size, MPI_COMM_WORLD, false);
 

@@ -7,7 +7,7 @@ class CubeFD
 private:
 	// Constants
 	const complex<double> PI = (complex<double>) 3.1415927;
-	const complex<double> C = (complex<double>) - 0.008443431966;
+	const complex<double> C = (complex<double>) -0.008443431966;
 	int* periods;
 
 	// Data

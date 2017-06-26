@@ -1,13 +1,16 @@
 #include <iostream>
 #include <time.h>
-#include <mpi.h>
 #include <cmath>
 #include <complex>
 #include "mpi_dot.h"
 #include "CubeFD.h"
+#include "CubeFD_D.h"
+#include "SolveZ.h"
+#include "mpi.h"
 #include "mkl_types.h"
 #define MKL_Complex16 std::complex<double>
 #include "mkl.h"
+
 using namespace std;
 int main(int argc, char **argv)
 {
@@ -33,9 +36,9 @@ int main(int argc, char **argv)
 	const MKL_INT d = 3;
 	const MKL_INT N = d*d*d;
 	MKL_INT loop = 0;
-	MKL_INT m0 = 10;
+	MKL_INT m0 = 20;
 	double emin = 0.2;
-	double emax = 10.0;
+	double emax = 21.0;
 	// 1d array pointers
 	MKL_INT* fpm;
 	double* res;
@@ -48,9 +51,10 @@ int main(int argc, char **argv)
 	MKL_Complex16* workc;
 
 	// GMRES variables
-	const int m = 6;
+	const int m = 8;
 	const int L = 200;
 	CubeFD cl(d, d, d, rank, size, MPI_COMM_WORLD);
+	CubeFD_D cld(d, d, d, rank, size, MPI_COMM_WORLD);
 	// 2d array pointers
 	complex<double>** V;
 	complex<double>** Z;
@@ -82,7 +86,7 @@ int main(int argc, char **argv)
 		double _work[N][m0];
 		double _aq[m0][m0];
 		double _sq[m0][m0];
-		double _q[N][m];
+		double _q[N][M];
 		MKL_Complex16 _workc[N][m0];
 		
 		// Set Pointers
@@ -118,23 +122,75 @@ int main(int argc, char **argv)
 		e1 = new complex<double>[m + 1]();
 		temp1 = new complex<double>[N];
 
-		// Call one round of dfeast_srci
 		dfeast_srci(&ijob, &N, &ze, work, workc, aq, sq, fpm, &epsout, &loop, &emin, &emax, &m0, lambda, q, &M, res, &info);
-
 		cout << "ijob = " << ijob << endl;
 		cout << "ze = " << ze << endl;
 		cout << "info = " << info << endl;
-		cout << "m = " << m << endl;
+		cout << "M = " << M << endl;
 
-		dfeast_srci(&ijob, &N, &ze, work, workc, aq, sq, fpm, &epsout, &loop, &emin, &emax, &m0, lambda, q, &m, res, &info);
+		for (int count = 0; count < 100; count++)
+		{
+			switch(ijob)
+			{
+				case 10: 	break;
+				case 11: 	for (int i = 0; i < N; i++)
+						{
+							cout << workc[i] << " ";
+							x0[i] = workc[i];
+							b[i] = workc[i];
+						}
+						cout << endl;
+						for (int i = 0; i < m + 1; i++)
+						{
+							y[i][0] = (complex<double>) 0.0;
+							e1[i] = (complex<double>) 0.0;
+							for (int j = 0; j < m; j++)
+								H[i][j] = (complex<double>) 0.0;
+						}
+						SolveZ(ze, m, beta, H_ptrs, V, Z, *H, w, b, *y, y_ptrs, e1, x0, r0, temp1, L, N, rank, size, MPI_COMM_WORLD, cl);
+						for (int i = 0; i < N; i++)
+							workc[i] = x0[i];
+						break;
+				case 30:	for (int i = fpm[23]; i < fpm[23]+fpm[24]-1; i++)
+						{
+							//cout << "i = " << i << "\tN*(i-1) = " << N*(i-1) << endl;
+							cld.ApplyA(&q[N*(i-1)], &work[N*(i-1)], MPI_COMM_WORLD);
+						}
+						break;
+				case 40:	for (int i = fpm[23]; i < fpm[23]+fpm[24]-1; i++)
+						{
+							//cout << "i = " << i << "\tN*(i-1) = " << N*(i-1) << endl;
+							//cld.ApplyM(&q[N*(i-1)], &work[N*(i-1)], MPI_COMM_WORLD);
+							for (int j = 0; j < N; j++)
+								work[N*(i-1) + j] = q[N*(i-1) + j];
+						}
+						break;
+				//case -2:	break;
+				case 0:		cout << "Feast has completed successfully.\n";
+						cout << "Computed Eigenvalues = [";
+						for (int i = 0; i < m0; i++)
+							cout << lambda[i] << " ";
+						cout << "]\n";
+						count = 200;
+						break;
+				default:	cout << "Something unexpected happened.\n";
+						cout << "Computed Eigenvalues = [";
+						for (int i = 0; i < m0; i++)
+							cout << lambda[i] << " ";
+						cout << "]\n";
+						count = 200;
+						break;
+			}	
 
-		cout << "ijob = " << ijob << endl;
-		cout << "ze = " << ze << endl;
-		cout << "info = " << info << endl;
-		cout << "m = " << m << endl;
+			cout << "Count = " << count << endl;
+			cout << "\tijob = " << ijob << endl;
+			cout << "\tze = " << ze << endl;
+			cout << "\tinfo = " << info << endl;
+			cout << "\tM = " << M << endl;
 
-		// Solve (ZeB - A)x = workc
-		SolveZ(Ze, m, beta, H_ptrs, V, Z, *H, w, b, *y, y_ptrs, e1, x0, r0, temp1, L, N, rank, size, MPI_COMM_WORLD, cl);
+			dfeast_srci(&ijob, &N, &ze, work, workc, aq, sq, fpm, &epsout, &loop, &emin, &emax, &m0, lambda, q, &M, res, &info);
+
+		}
 	}
 	
 	// void dfeast_srci (	MKL_INT* ijob, const MKL_INT* N, 

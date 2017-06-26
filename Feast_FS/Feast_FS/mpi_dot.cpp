@@ -8,6 +8,7 @@ complex<double>* local_v2;
 complex<double>* local_output;
 complex<double>* sums;
 complex<double> local_sum;
+complex<double> local_scalar;
 
 void mpi_dot(complex<double>* v1, complex<double>* v2, complex<double>* final_sum, int N, int rank, int size, MPI_Comm comm)
 {
@@ -18,7 +19,7 @@ void mpi_dot(complex<double>* v1, complex<double>* v2, complex<double>* final_su
 	{
 		sums = new complex<double>[size];
 	}
-	local_sum = 0.0;
+	local_sum = (complex<double>) 0.0;
 
 	// Scatter v1 and v2 across processors
 	MPI_Scatter(v1, N / size, MPI_DOUBLE_COMPLEX, local_v1, N / size, MPI_DOUBLE_COMPLEX, 0, comm);
@@ -32,6 +33,7 @@ void mpi_dot(complex<double>* v1, complex<double>* v2, complex<double>* final_su
 	MPI_Gather(&local_sum, 1, MPI_DOUBLE_COMPLEX, sums, 1, MPI_DOUBLE_COMPLEX, 0, comm);
 
 	// Compute final sum
+	if (rank == 0) *final_sum = (complex<double>) 0.0;
 	if (rank == 0)
 		for (int i = 0; i < size; i++)
 			*final_sum += sums[i];
@@ -74,13 +76,15 @@ void mpi_times(complex<double>* v, complex<double>* output, complex<double> scal
 	// Initialize local data
 	local_v1 = new complex<double>[N / size];
 	local_output = new complex<double>[N / size];
+	if (rank == 0) local_scalar = scalar;
 
 	// Scatter v1 and v2 across processors
 	MPI_Scatter(v, N / size, MPI_DOUBLE_COMPLEX, local_v1, N / size, MPI_DOUBLE_COMPLEX, 0, comm);
+	MPI_Bcast(&local_scalar, 1, MPI_DOUBLE_COMPLEX, 0, MPI_COMM_WORLD);
 
 	// Compute local sum
 	for (int i = 0; i < N / size; i++)
-		local_output[i] = local_v1[i] * scalar;
+		local_output[i] = local_v1[i] * local_scalar;
 
 	// Gather local sums
 	MPI_Gather(local_output, N / size, MPI_DOUBLE_COMPLEX, output, N / size, MPI_DOUBLE_COMPLEX, 0, comm);

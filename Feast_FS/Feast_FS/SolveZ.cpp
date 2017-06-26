@@ -99,13 +99,16 @@ void SolveZ(complex<double> Ze, int m, complex<double> beta, complex<double>** H
 		}
 
 		// Check Residual
+		if (l == L - 1 || l % 25 == 0)
+		{
 		if (rank == 0) cblas_zgemv(CblasRowMajor, CblasNoTrans, m + 1, m, &one, H, m, y, 1, &zero, temp1, 1);
 		mpi_plus(e1, temp1, temp1, m + 1, rank, size, MPI_COMM_WORLD, false);
 		mpi_dot(temp1, temp1, &beta, m + 1, rank, size, MPI_COMM_WORLD);
 		if (rank == 0) cout << "(l = " << l << ") ||beta * e1 - H_l * y_hat|| = " << sqrt(beta) << endl;
+		}
 
 		// Output final approximate solution
-		if (l == L - 1 && rank == 0)
+		if (l == L + 1 && rank == 0)
 		{
 			if (N < 20)
 			{
