@@ -29,14 +29,16 @@ int main(int argc, char **argv)
 	const int d = 20;
 	const int N = d*d*d;
 	const int m = 6;
-	const int L = 200;
+	const int L = 800;
 	CubeFD cl(d, d, d, rank, size, MPI_COMM_WORLD);
+
 	// 2d array pointers
 	complex<double>** V;
 	complex<double>** Z;
 	complex<double>** H_ptrs;
 	complex<double> H[m + 1][m];
 	complex<double> y[m][1];
+
 	// 1d array pointers
 	complex<double>* y_ptrs = &y[0][0];
 	complex<double>* r0;
@@ -78,7 +80,7 @@ int main(int argc, char **argv)
 
 		for (int i = 0; i < N; i++)
 		{
-			b[i] = (complex<double>) (i+1);
+			b[i] = (complex<double>) (i + 1);
 			x0[i] = b[i];
 		}
 	}

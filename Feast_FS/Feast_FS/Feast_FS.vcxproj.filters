@@ -27,12 +27,30 @@
     <ClCompile Include="mpi_dot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="2-my_gmres.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="3-feast.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="4-mpi_tests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="5-z_gmres.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SolveZ.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CubeFD.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mpi_dot.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SolveZ.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

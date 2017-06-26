@@ -152,13 +152,19 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="2-my_gmres.cpp" />
+    <ClCompile Include="3-feast.cpp" />
+    <ClCompile Include="4-mpi_tests.cpp" />
+    <ClCompile Include="5-z_gmres.cpp" />
     <ClCompile Include="CubeFD.cpp" />
     <ClCompile Include="1-dfgmres.cpp" />
     <ClCompile Include="mpi_dot.cpp" />
+    <ClCompile Include="SolveZ.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CubeFD.h" />
     <ClInclude Include="mpi_dot.h" />
+    <ClInclude Include="SolveZ.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
