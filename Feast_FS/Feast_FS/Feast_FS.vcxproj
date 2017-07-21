@@ -159,6 +159,7 @@
     <ClCompile Include="CubeFD.cpp" />
     <ClCompile Include="1-dfgmres.cpp" />
     <ClCompile Include="mpi_dot.cpp" />
+    <ClCompile Include="sloshing.c" />
     <ClCompile Include="SolveZ.cpp" />
   </ItemGroup>
   <ItemGroup>

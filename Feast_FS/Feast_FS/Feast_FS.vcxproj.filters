@@ -42,6 +42,9 @@
     <ClCompile Include="SolveZ.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sloshing.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CubeFD.h">
